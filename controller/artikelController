@@ -1,0 +1,127 @@
+const {
+    getAllArtikel,
+    getPhotoById,
+    getArtikelsByJenis,
+    addArtikel,
+    updateArtikel,
+    deleteArtikel
+} = require("../models/ArtikelModel");
+
+const createError = (message, status) => {
+    const error = new Error(message);
+    error.status = status;
+    return error;
+};
+
+
+const getAll = (req, res) => {
+    const { KodeArtikel } = req.query;
+
+    if (KodeArtikel) {
+        return res.json({
+            status: "success",
+            data: getArtikelsByKodeArtikel(KodeArtikel)
+        });
+    }
+
+    res.json({
+        status: "success",
+        data: getAllArtikels()
+    });
+};
+
+const getById = (req, res, next) => {
+    const id = parseInt(req.params.id);
+
+    const Artikel = getArtikelById(id);
+
+    if (!Artikel) {
+        return next(createError("Artikel tidak ditemukan", 404));
+    }
+
+    res.json({
+        status: "success",
+        data: Artikel
+    });
+};
+
+
+const create = (req, res, next) => {
+    const { namaArtikel, jenis, jumlahArtike } = req.body;
+
+    if (!namaArtikel || !jenis || jumlahArtikel === undefined ) {
+        return next(createError("Data  Artikel tidak lengkap", 400));
+    }
+
+    if (!["wisuda", "prewedding", "produk"].includes(jenis)) {
+        return next(createError("Jenis paket tidak valid", 400));
+    }
+
+    const newArtikel = addArtikel({
+        namaPaket,
+        jenis,
+        jumlahFoto,
+        durasiJam,
+        harga
+    });
+
+    res.status(201).json({
+        status: "success",
+        message: "Paket foto berhasil ditambahkan",
+        data: newArtikel
+    });
+};
+
+// PUT ubah paket foto
+const update = (req, res, next) => {
+    const id = parseInt(req.params.id);
+    const { namaPaket, jenis, jumlahFoto, durasiJam, harga } = req.body;
+
+    if (!namaPaket || !jenis || jumlahFoto === undefined || harga === undefined) {
+        return next(createError("Data paket foto tidak lengkap", 400));
+    }
+
+    if (!["wisuda", "prewedding", "produk"].includes(jenis)) {
+        return next(createError("Jenis paket tidak valid", 400));
+    }
+
+    const updatedArtikel = updateArtikel(id, {
+        namaPaket,
+        jenis,
+        jumlahFoto,
+        durasiJam,
+        harga
+    });
+
+    if (!updatedArtikel) {
+        return next(createError("Paket foto tidak ditemukan", 404));
+    }
+
+    res.json({
+        status: "success",
+        message: "Paket foto berhasil diubah",
+        data: updatedArtikel
+    });
+};
+
+// DELETE paket foto
+const remove = (req, res, next) => {
+    const id = parseInt(req.params.id);
+
+    const deletedArtikel = deleteArtikel(id);
+
+    if (!deletedArtikel) {
+        return next(createError("Paket foto tidak ditemukan", 404));
+    }
+
+    res.status(204).send();
+};
+
+module.exports = {
+    getAll,
+    getById,
+    create,
+    update,
+    remove
+};
+
